@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Stephen G. Pope
+# Copyright (c) 2024 Stephen G. Pope
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,31 +15,55 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-
 import os
 import logging
+import platform
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Retrieve the API key from environment variables
 API_KEY = os.environ.get('API_KEY')
 if not API_KEY:
     raise ValueError("API_KEY environment variable is not set")
+else:
+    logging.info("API_KEY loaded from environment")
 
 # Storage path setting
-LOCAL_STORAGE_PATH = os.environ.get('LOCAL_STORAGE_PATH', '/tmp')
+if platform.system() == 'Windows':
+    LOCAL_STORAGE_PATH = os.environ.get('LOCAL_STORAGE_PATH', os.path.join(os.environ['LOCALAPPDATA'], 'storage'))
+else:
+    LOCAL_STORAGE_PATH = os.environ.get('LOCAL_STORAGE_PATH', '/tmp')
+logging.info(f"LOCAL_STORAGE_PATH: {LOCAL_STORAGE_PATH}")
 
 # GCP environment variables
 GCP_SA_CREDENTIALS = os.environ.get('GCP_SA_CREDENTIALS', '')
 GCP_BUCKET_NAME = os.environ.get('GCP_BUCKET_NAME', '')
 
-def validate_env_vars(provider):
+# S3 environment variables
+S3_ENDPOINT_URL = os.environ.get('S3_ENDPOINT_URL', '')
+S3_ACCESS_KEY = os.environ.get('S3_ACCESS_KEY', '')
+S3_SECRET_KEY = os.environ.get('S3_SECRET_KEY', '')
+S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME', '')
+S3_REGION = os.environ.get('S3_REGION', '')
 
+
+def validate_env_vars(provider):
     """ Validate the necessary environment variables for the selected storage provider """
     required_vars = {
         'GCP': ['GCP_BUCKET_NAME', 'GCP_SA_CREDENTIALS'],
         'S3': ['S3_ENDPOINT_URL', 'S3_ACCESS_KEY', 'S3_SECRET_KEY', 'S3_BUCKET_NAME', 'S3_REGION'],
         'S3_DO': ['S3_ENDPOINT_URL', 'S3_ACCESS_KEY', 'S3_SECRET_KEY']
     }
-    
+
     missing_vars = [var for var in required_vars[provider] if not os.getenv(var)]
     if missing_vars:
         raise ValueError(f"Missing environment variables for {provider} storage: {', '.join(missing_vars)}")
+
+
+# Example usage (you should call this function somewhere in your application startup)
+# try:
+#     validate_env_vars('GCP')  # Or 'S3', or 'S3_DO'
+# except ValueError as e:
+#     logging.error(str(e))
+#     # Handle the error appropriately, e.g., exit the application
