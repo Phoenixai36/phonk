@@ -278,6 +278,8 @@ def main():
 
     # Load configuration from JSON file
     api_key, output_dir = load_config()
+    print(f"API Key: {api_key}")
+    print(f"Output Directory: {output_dir}")
 
     # Validate configuration
     if not api_key:
